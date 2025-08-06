@@ -28,10 +28,7 @@ const CameraFeature = Type.Object({
     'volcano-title': Type.Array(Type.String())
 });
 
-const VolcanoGroup = Type.Object({
-    type: Type.Literal('FeatureCollection'),
-    features: Type.Array(CameraFeature)
-});
+
 
 export default class Task extends ETL {
     static name = 'etl-geonet-volcanocams';
@@ -42,32 +39,37 @@ export default class Task extends ETL {
         type: SchemaType = SchemaType.Input,
         flow: DataFlowType = DataFlowType.Incoming
     ): Promise<TSchema> {
-        if (flow === DataFlowType.Incoming) {
-            if (type === SchemaType.Input) {
-                return Env;
-            } else {
-                return CameraFeature;
-            }
-        } else {
-            return Type.Object({});
+        return flow === DataFlowType.Incoming 
+            ? (type === SchemaType.Input ? Env : CameraFeature)
+            : Type.Object({});
+    }
+
+    private convertNZTimeToISO(timestampStr: string): string {
+        const nzstOffset = 12 * 60 * 60 * 1000; // 12 hours in milliseconds
+        const nzdtOffset = 13 * 60 * 60 * 1000; // 13 hours in milliseconds
+        
+        if (timestampStr.includes('NZST')) {
+            const localTime = new Date(timestampStr.replace(' NZST', ''));
+            return new Date(localTime.getTime() - nzstOffset).toISOString();
+        } else if (timestampStr.includes('NZDT')) {
+            const localTime = new Date(timestampStr.replace(' NZDT', ''));
+            return new Date(localTime.getTime() - nzdtOffset).toISOString();
         }
+        return new Date(timestampStr).toISOString();
     }
 
     async control() {
         try {
-            const env = await this.env(Env);
-            const cameraProxyUrl = env['Camera Proxy URL'].replace(/\/$/, '');
-            
             console.log('ok - Fetching volcano camera data from GeoNet');
             
-            const url = 'http://images.geonet.org.nz/volcano/cameras/all.json';
+            const url = 'https://images.geonet.org.nz/volcano/cameras/all.json';
             const res = await fetch(url);
             
             if (!res.ok) {
                 throw new Error(`Failed to fetch data: ${res.status} ${res.statusText}`);
             }
             
-            const volcanoGroups = await res.json() as Static<typeof VolcanoGroup>[];
+            const volcanoGroups = await res.json() as { type: string; features: Static<typeof CameraFeature>[] }[];
             const features: Static<typeof InputFeatureCollection>["features"] = [];
             
             for (const group of volcanoGroups) {
@@ -75,24 +77,8 @@ export default class Task extends ETL {
                     const [lat, lon] = camera.geometry.coordinates;
                     const cameraUrl = `https://www.geonet.org.nz/volcano/cameras/${camera.id}`;
                     
-                    const now = new Date().toISOString();
-                    // Handle timezone-aware timestamp conversion
-                    const timestampStr = camera.properties['latest-timestamp'];
-                    // Parse the timestamp and handle NZ timezone manually
-                    let cameraTime: string;
-                    if (timestampStr.includes('NZST')) {
-                        // NZST is UTC+12, so subtract 12 hours to get UTC
-                        const localTime = new Date(timestampStr.replace(' NZST', ''));
-                        const utcTime = new Date(localTime.getTime() - (12 * 60 * 60 * 1000));
-                        cameraTime = utcTime.toISOString();
-                    } else if (timestampStr.includes('NZDT')) {
-                        // NZDT is UTC+13, so subtract 13 hours to get UTC
-                        const localTime = new Date(timestampStr.replace(' NZDT', ''));
-                        const utcTime = new Date(localTime.getTime() - (13 * 60 * 60 * 1000));
-                        cameraTime = utcTime.toISOString();
-                    } else {
-                        cameraTime = new Date(timestampStr).toISOString();
-                    }
+                    // Optimized timezone conversion
+                    const cameraTime = this.convertNZTimeToISO(camera.properties['latest-timestamp']);
                     features.push({
                         id: `volcano-camera-${camera.id}`,
                         type: 'Feature',
@@ -144,8 +130,16 @@ export default class Task extends ETL {
             console.log(`ok - fetched ${features.length} volcano cameras`);
             await this.submit(fc);
         } catch (error) {
-            console.error(`Error in ETL process: ${error instanceof Error ? error.message : String(error)}`);
-            throw error;
+            if (error instanceof TypeError) {
+                console.error(`Network or parsing error: ${error.message}`);
+                throw new Error(`Failed to fetch or parse volcano camera data: ${error.message}`);
+            } else if (error instanceof Error) {
+                console.error(`ETL processing error: ${error.message}`, { stack: error.stack });
+                throw error;
+            } else {
+                console.error(`Unknown error in ETL process: ${String(error)}`);
+                throw new Error(`Unexpected error occurred: ${String(error)}`);
+            }
         }
     }
 }
