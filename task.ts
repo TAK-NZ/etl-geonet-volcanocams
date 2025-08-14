@@ -2,12 +2,7 @@ import { Static, Type, TSchema } from '@sinclair/typebox';
 import { fetch } from '@tak-ps/etl';
 import ETL, { Event, SchemaType, handler as internal, local, InvocationType, DataFlowType, InputFeatureCollection } from '@tak-ps/etl';
 
-const Env = Type.Object({
-    'Camera Proxy URL': Type.String({
-        description: 'Base URL for camera proxy service',
-        default: 'https://utils.test.tak.nz/camera-proxy/'
-    })
-});
+const Env = Type.Object({});
 
 // Define types for GeoNet Volcano Camera data structure
 const CameraFeature = Type.Object({
