@@ -81,7 +81,7 @@ export default class Task extends ETL {
                             callsign: camera.properties.title,
                             type: 'a-f-G-E-S',
                             how: 'm-g',
-                            icon: 'ad78aafb-83a6-4c07-b2b9-a897a8b6a38f:Shapes/camera.png',
+                            icon: 'bb4df0a6-ca8d-4ba8-bb9e-3deb97ff015e:Infrastructure/INF.21.CameraCCTV.png',
                             time: cameraTime,
                             start: cameraTime,
                             sensor: {
@@ -93,7 +93,7 @@ export default class Task extends ETL {
                                 azimuth: camera.properties.azimuth,
                                 fov: 45
                             },
-                            'marker-color': 'rgb(25, 152, 123)',
+                            'marker-color': '#D1B5D3',
                             links: [{
                                 uid: `volcano-camera-${camera.id}-link`,
                                 relation: 'r-u',
