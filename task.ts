@@ -1,6 +1,6 @@
 import { Static, Type, TSchema } from '@sinclair/typebox';
 import { fetch } from '@tak-ps/etl';
-import ETL, { Event, SchemaType, handler as internal, local, InvocationType, DataFlowType, InputFeatureCollection } from '@tak-ps/etl';
+import ETL, { Event, SchemaType, handler as internal, local, InvocationType, DataFlowType } from '@tak-ps/etl';
 
 const Env = Type.Object({});
 
@@ -65,7 +65,15 @@ export default class Task extends ETL {
             }
             
             const volcanoGroups = await res.json() as { type: string; features: Static<typeof CameraFeature>[] }[];
-            const features: Static<typeof InputFeatureCollection>["features"] = [];
+            const features: Array<{
+                id: string;
+                type: 'Feature';
+                properties: Record<string, unknown>;
+                geometry: {
+                    type: 'Point';
+                    coordinates: [number, number, number];
+                };
+            }> = [];
             
             for (const group of volcanoGroups) {
                 for (const camera of group.features) {
@@ -118,8 +126,8 @@ export default class Task extends ETL {
                 }
             }
             
-            const fc: Static<typeof InputFeatureCollection> = {
-                type: 'FeatureCollection',
+            const fc = {
+                type: 'FeatureCollection' as const,
                 features
             };
             console.log(`ok - fetched ${features.length} volcano cameras`);
