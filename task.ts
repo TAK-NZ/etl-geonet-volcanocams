@@ -135,13 +135,13 @@ export default class Task extends ETL {
         } catch (error) {
             if (error instanceof TypeError) {
                 console.error(`Network or parsing error: ${error.message}`);
-                throw new Error(`Failed to fetch or parse volcano camera data: ${error.message}`);
+                throw new Error(`Failed to fetch or parse volcano camera data: ${error.message}`, { cause: error });
             } else if (error instanceof Error) {
                 console.error(`ETL processing error: ${error.message}`, { stack: error.stack });
                 throw error;
             } else {
                 console.error(`Unknown error in ETL process: ${String(error)}`);
-                throw new Error(`Unexpected error occurred: ${String(error)}`);
+                throw new Error(`Unexpected error occurred: ${String(error)}`, { cause: error });
             }
         }
     }
