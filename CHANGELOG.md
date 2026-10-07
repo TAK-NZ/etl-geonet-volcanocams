@@ -21,8 +21,9 @@
 - :arrow_up: Update dependencies: `@tak-ps/etl` 10.22.2 (minimum raised to `^10.13.0`, which the manifest schema needs), `eslint` 10.12.0, `typescript-eslint` 8.71.1 and a new dev dependency `tsx` 4.23.15. `npm audit` now reports 0 vulnerabilities (8 before, 1 critical). `typescript` stays on 6.0.3 as `typescript-eslint` still limits supported versions to below 6.1.0
 - :rocket: Add a `.dockerignore` so `.git`, `.github`, `node_modules`, `dist`, `test`, `docs`, `.agents`, `.env*` and markdown files are kept out of the image build context. `capabilities.json`, `task.ts`, `package*.json` and `tsconfig.json` stay in the context
 
+- :arrow_up: Update GitHub Actions to releases that run on Node.js 24, clearing the Node.js 20 deprecation warnings: `actions/checkout` v7, `actions/setup-node` v7 and `aws-actions/configure-aws-credentials` v6. `aws-actions/amazon-ecr-login` v2 already runs on Node.js 24. Not yet run in CI on these versions
+- :rocket: Pin the workflow runners to `ubuntu-24.04` instead of `ubuntu-latest`, so the `ubuntu-latest` migration to Ubuntu 26 (starting October 19, 2026) does not change the build environment unannounced
+- :pencil2: Audit against CloudTAK issue #168 (manifest-based capabilities): no code or workflow changes were needed. The `feature:submit` permission matches the task's only CloudTAK API call (`this.submit()`), the manifest validates against `StaticCapabilitiesSchema`, and a local buildx build confirmed `capabilities.json` is in `/var/task` and lands as the `com.cloudtak.capabilities` annotation on the pushed manifest. The push to demo and reading the manifest from `GET /api/task/raw/...` still need to be checked after merge
 ### v1.0.0
 
 - :tada: Initial Commit
-- :arrow_up: Update GitHub Actions to releases that run on Node.js 24, clearing the Node.js 20 deprecation warnings: `actions/checkout` v7, `actions/setup-node` v7 and `aws-actions/configure-aws-credentials` v6. `aws-actions/amazon-ecr-login` v2 already runs on Node.js 24. Not yet run in CI on these versions
-- :rocket: Pin the workflow runners to `ubuntu-24.04` instead of `ubuntu-latest`, so the `ubuntu-latest` migration to Ubuntu 26 (starting October 19, 2026) does not change the build environment unannounced
