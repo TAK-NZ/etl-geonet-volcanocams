@@ -1,7 +1,7 @@
 {
     "name": "etl-geonet-volcanocams",
     "type": "module",
-    "version": "1.2.0",
+    "version": "1.2.1",
     "description": "ETL to bring GeoNet volcano camera data into the TAK",
     "main": "index.js",
     "scripts": {
@@ -25,6 +25,6 @@
     },
     "dependencies": {
         "@sinclair/typebox": "^0.34.49",
-        "@tak-ps/etl": "^10.13.0"
+        "@tak-ps/etl": "^11.4.0"
     }
 }

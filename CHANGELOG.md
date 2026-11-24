@@ -10,6 +10,9 @@
 
 ## Version History
 
+### v1.2.1
+- :arrow_up: Update `@tak-ps/etl` to `^11.4.0`. CloudTAK v14 requires ETLs to be on ETL-Base v11 or higher. v11 publishes Output schemas as named schemas, so this task needed no code change, and the release also works with CloudTAK v13
+- :arrow_up: Update the other dependencies within their existing ranges, which clears the `npm audit --production` findings that the deploy workflow checks
 ### v1.2.0
 
 - :tada: Add a `capabilities.json` manifest so CloudTAK can read the task's requirements from the image. It declares a single required permission, `feature:submit` (the only CloudTAK API the task uses is `submit()`), 1024 MB memory / 120 s timeout, and a default `rate(5 minutes)` schedule. The schedule is a judgement call for a single small JSON fetch, not a measured camera refresh interval. The manifest is validated against `StaticCapabilitiesSchema` from `@tak-ps/etl`, and a test guards it in CI
